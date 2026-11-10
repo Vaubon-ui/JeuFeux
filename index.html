@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les feux de la voiture – le jeu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1e293b;--muted:#64748b;--line:#cbd5e1;--orange:#f97316;--orange-d:#ea580c;--green:#16a34a;--red:#dc2626;--bg:#eaf0f7}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink);touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+.screen{display:none;height:100%;min-height:100%}
+.screen.on{display:flex}
+
+/* ---------- Accueil ---------- */
+#home{align-items:center;justify-content:center;padding:20px;overflow:auto;background:linear-gradient(160deg,#0f2147 0%,#1d3b78 55%,#f97316 140%)}
+.home-card{background:#fff;border-radius:28px;padding:clamp(20px,4vw,40px);max-width:760px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.home-card h1{margin:4px 0 6px;font-size:clamp(28px,4.5vw,46px);font-weight:900;line-height:1.1}
+.home-card .sub{color:var(--muted);font-size:clamp(16px,2vw,20px);margin:0 0 18px}
+.how{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 0 22px}
+.how div{background:#f1f5f9;border-radius:14px;padding:10px 14px;font-weight:700;font-size:16px}
+.how b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--orange);color:#fff;margin-right:6px}
+.menu{display:grid;gap:14px}
+.big{display:flex;align-items:center;gap:16px;text-align:left;width:100%;border:none;border-radius:20px;padding:18px 22px;font-size:clamp(19px,2.4vw,24px);font-weight:900;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .08s}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.big .em{font-size:38px}
+.big small{display:block;font-weight:700;font-size:15px;opacity:.9}
+.b1{background:#0ea5e9}.b2{background:var(--orange)}.b3{background:#7c3aed}
+.chrono-choice{display:none;gap:10px;margin-top:-4px}
+.chrono-choice.on{display:grid;grid-template-columns:1fr 1fr}
+.chrono-choice button{border:3px solid #7c3aed;background:#f5f3ff;color:#4c1d95;border-radius:16px;padding:14px;font-size:18px;font-weight:800}
+
+/* ---------- Découverte ---------- */
+#learn{flex-direction:column;overflow:auto}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#0f2147;color:#fff;flex-wrap:wrap}
+.topbar h2{margin:0;font-size:clamp(18px,2.4vw,24px);font-weight:900;flex:1}
+.tb-btn{border:none;background:rgba(255,255,255,.14);color:#fff;font-size:18px;font-weight:800;border-radius:14px;padding:10px 16px;min-height:48px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:18px}
+.card{background:#fff;border-radius:22px;padding:18px;border-top:8px solid var(--c);box-shadow:0 4px 14px rgba(15,23,42,.08);display:flex;flex-direction:column;gap:8px}
+.card-h{display:flex;align-items:center;gap:12px}
+.card-h svg{width:64px;height:54px;color:var(--c);flex:none;background:var(--cl);border-radius:14px;padding:6px}
+.card-h h3{margin:0;font-size:21px;font-weight:900;line-height:1.15}
+.card-h .nick{color:var(--muted);font-weight:700;font-size:16px}
+.card .key{font-size:17px;font-weight:800;background:#f8fafc;border-radius:12px;padding:8px 12px}
+.card ul{margin:0;padding-left:0;list-style:none;font-size:17px;line-height:1.4}
+.card li{padding:3px 0}
+.card .see{margin-top:auto;align-self:flex-start;border:3px solid var(--c);background:var(--cl);color:var(--ink);font-weight:800;font-size:17px;border-radius:14px;padding:10px 16px;min-height:48px}
+.learn-go{margin:0 18px 24px;align-self:center}
+
+/* ---------- Jeu ---------- */
+#game{flex-direction:column}
+.progress{display:flex;gap:5px;flex-wrap:wrap}
+.progress i{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.25);display:block}
+.progress i.ok{background:#22c55e}.progress i.ko{background:#ef4444}.progress i.cur{background:#fff;box-shadow:0 0 0 3px #f97316}
+.score{font-weight:900;font-size:18px;background:rgba(255,255,255,.14);padding:8px 14px;border-radius:14px}
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(330px,1fr);gap:14px;padding:14px}
+.stage{position:relative;background:#0b1220;border-radius:22px;overflow:hidden;min-height:260px}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg.inset{inset:auto;top:12px;right:12px;width:clamp(150px,24%,210px);height:auto;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
+.timer{position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(0,0,0,.4);display:none}
+.timer.on{display:block}
+.timer div{height:100%;width:100%;background:#22c55e;transition:width .1s linear}
+.panel{display:flex;flex-direction:column;gap:12px;min-height:0}
+.situ{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 4px 14px rgba(15,23,42,.08)}
+.situ.flash{animation:flash .9s}
+@keyframes flash{0%{background:#fed7aa;transform:scale(1.02)}100%{background:#fff;transform:none}}
+.situ-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.situ-h .tag{background:#0f2147;color:#fff;font-weight:900;border-radius:10px;padding:4px 10px;font-size:15px}
+.situ-h .ttl{font-weight:900;font-size:18px;flex:1}
+.icon-btn{border:2px solid var(--line);background:#f8fafc;border-radius:12px;min-width:48px;min-height:48px;font-size:22px}
+.situ p{margin:0;font-size:clamp(18px,2vw,22px);line-height:1.35;font-weight:700}
+.hint{display:none;margin-top:10px;background:#fef9c3;border-radius:12px;padding:10px 12px;font-size:17px;font-weight:700}
+.hint.on{display:block}
+.ctrl-title{font-weight:900;font-size:16px;color:var(--muted);margin:2px 4px -4px;text-transform:uppercase;letter-spacing:.04em}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.lb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border-radius:18px;border:3px solid var(--line);background:#fff;min-height:118px;font-weight:800;font-size:16px;color:var(--ink);line-height:1.15;transition:transform .08s,background .15s}
+.lb:active{transform:scale(.96)}
+.lb svg{width:62px;height:50px;color:#94a3b8}
+.lb .st{font-size:13px;font-weight:900;border-radius:999px;padding:2px 10px;background:#e2e8f0;color:#475569}
+.lb.on{border-color:var(--c);background:var(--cl);box-shadow:0 0 0 3px var(--c) inset}
+.lb.on svg{color:var(--c);filter:drop-shadow(0 0 6px var(--c))}
+.lb.on .st{background:var(--c);color:#fff}
+.actions{display:flex;gap:10px;margin-top:auto}
+.btn{border:none;border-radius:18px;padding:16px 20px;font-size:21px;font-weight:900;min-height:62px;box-shadow:0 5px 0 rgba(0,0,0,.18)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.btn.main{background:var(--orange);color:#fff;flex:1}
+.btn.sec{background:#fff;color:var(--ink);border:3px solid var(--line);box-shadow:0 5px 0 #cbd5e1}
+.btn.ok{background:var(--green);color:#fff;flex:1}
+
+/* ---------- Fenêtres ---------- */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;z-index:20;padding:14px}
+.overlay.on{display:flex}
+.modal{background:#fff;border-radius:26px;max-width:680px;width:100%;max-height:94%;overflow:auto;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .25s}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.modal h2{margin:0 0 12px;font-size:clamp(26px,3.4vw,34px);font-weight:900}
+.modal h2.good{color:var(--green)}.modal h2.bad{color:var(--red)}
+.fb{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:8px}
+.fb li{display:flex;gap:10px;align-items:center;font-size:19px;font-weight:700;background:#f8fafc;border-radius:14px;padding:10px 12px}
+.fb li svg{width:44px;height:36px;flex:none}
+.why{background:#eff6ff;border-left:6px solid #3b82f6;border-radius:12px;padding:12px 14px;font-size:18px;line-height:1.4;font-weight:600;margin-bottom:16px}
+.why b{display:block;margin-bottom:2px}
+.modal .actions{margin-top:0;flex-wrap:wrap}
+.preview{position:relative;width:100%;aspect-ratio:16/9;background:#0b1220;border-radius:18px;overflow:hidden;margin-bottom:12px}
+.preview svg{width:100%;height:100%;display:block}
+
+/* ---------- Bilan ---------- */
+#end{align-items:center;justify-content:center;padding:20px;overflow:auto;background:linear-gradient(160deg,#0f2147,#1d3b78)}
+.stars{font-size:64px;letter-spacing:6px;margin:4px 0}
+.stars .off{filter:grayscale(1);opacity:.3}
+.review{text-align:left;background:#fff7ed;border-radius:16px;padding:12px 16px;margin:12px 0 18px}
+.review h3{margin:0 0 6px;font-size:19px}
+.review ul{margin:0;padding-left:20px;font-size:17px;line-height:1.45;font-weight:700}
+
+@media (max-width:900px),(orientation:portrait){
+  .layout{grid-template-columns:1fr;grid-template-rows:minmax(240px,42vh) auto}
+}
+.rain{animation:fall .45s linear infinite}
+.snow{animation:fall2 3.2s linear infinite}
+@keyframes fall{from{transform:translateY(-120px)}to{transform:translateY(0)}}
+@keyframes fall2{from{transform:translateY(-150px)}to{transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- ============ ACCUEIL ============ -->
+<section id="home" class="screen on">
+  <div class="home-card">
+    <div style="font-size:54px">🚗💡</div>
+    <h1>Les feux de la voiture</h1>
+    <p class="sub">Quels feux allumer ? Entraînez-vous sur la route !</p>
+    <div class="how">
+      <div><b>1</b>Lisez la situation</div>
+      <div><b>2</b>Touchez les feux à allumer</div>
+      <div><b>3</b>Appuyez sur « Valider »</div>
+    </div>
+    <div class="menu">
+      <button class="big b1" onclick="openLearn()"><span class="em">📖</span><span>Découvrir les feux<small>Pour commencer : à quoi sert chaque feu ?</small></span></button>
+      <button class="big b2" onclick="startScen()"><span class="em">🚦</span><span>12 situations<small>Une situation à la fois, à votre rythme</small></span></button>
+      <button class="big b3" onclick="toggleChrono()"><span class="em">🛣️</span><span>Le grand trajet<small>Un voyage de nuit : la route change, adaptez vos feux !</small></span></button>
+      <div class="chrono-choice" id="chronoChoice">
+        <button onclick="startTrip(false)">🐢 Tranquille<br><small>sans chrono</small></button>
+        <button onclick="startTrip(true)">⏱️ Défi<br><small>25 secondes par étape</small></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DÉCOUVERTE ============ -->
+<section id="learn" class="screen">
+  <div class="topbar">
+    <button class="tb-btn" onclick="go('home')">🏠 Accueil</button>
+    <h2>📖 Découvrir les feux</h2>
+    <button class="tb-btn" onclick="fullscreen()">⛶</button>
+  </div>
+  <div class="cards" id="cards"></div>
+  <button class="big b2 learn-go" style="max-width:520px" onclick="startScen()"><span class="em">🚦</span><span>Je suis prêt(e) : on joue !</span></button>
+</section>
+
+<!-- ============ JEU ============ -->
+<section id="game" class="screen">
+  <div class="topbar">
+    <button class="tb-btn" onclick="quitGame()">🏠</button>
+    <h2 id="gTitle">Situations</h2>
+    <div class="progress" id="prog"></div>
+    <div class="score" id="score">⭐ 0</div>
+    <button class="tb-btn" onclick="fullscreen()">⛶</button>
+  </div>
+  <div class="layout">
+    <div class="stage" id="stage">
+      <div class="timer" id="timer"><div id="timerBar"></div></div>
+    </div>
+    <div class="panel">
+      <div class="situ" id="situ">
+        <div class="situ-h">
+          <span class="tag" id="sTag">1 / 12</span>
+          <span class="ttl" id="sTitle"></span>
+          <button class="icon-btn" id="speakBtn" onclick="speakSitu()" title="Écouter">🔊</button>
+          <button class="icon-btn" onclick="toggleHint()" title="Indice">💡</button>
+        </div>
+        <p id="sText"></p>
+        <div class="hint" id="hint"></div>
+      </div>
+      <div class="ctrl-title">Mes commandes de feux</div>
+      <div class="controls" id="controls"></div>
+      <div class="actions">
+        <button class="btn main" onclick="validate(false)">✔ Valider</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BILAN ============ -->
+<section id="end" class="screen">
+  <div class="home-card" id="endCard"></div>
+</section>
+
+<!-- ============ FENÊTRES ============ -->
+<div class="overlay" id="ov"><div class="modal" id="modal"></div></div>
+
+<script>
+/* =========================================================
+   DONNÉES
+   ========================================================= */
+const L = {
+  pos:   {name:'Feux de position', short:'Position', nick:'les veilleuses', c:'#16a34a', cl:'#dcfce7'},
+  crois: {name:'Feux de croisement', short:'Croisement', nick:'les codes', c:'#16a34a', cl:'#dcfce7'},
+  route: {name:'Feux de route', short:'Route', nick:'les pleins phares', c:'#2563eb', cl:'#dbeafe'},
+  bav:   {name:'Feux de brouillard avant', short:'Brouillard avant', nick:'', c:'#16a34a', cl:'#dcfce7'},
+  bar:   {name:'Feu de brouillard arrière', short:'Brouillard arrière', nick:'', c:'#d97706', cl:'#fef3c7'},
+  diu:   {name:'Feux de jour', short:'Feux de jour', nick:'les feux diurnes', c:'#0891b2', cl:'#cffafe'}
+};
+const ORDER = ['pos','crois','route','bav','bar'];
+
+/* Pictogrammes inspirés des voyants du tableau de bord */
+function icon(k){
+  const lampL = 'M21 7 C5 7 5 33 21 33 Z';
+  const wave = x => `M${x} 3 q4 4.25 0 8.5 q-4 4.25 0 8.5 q4 4.25 0 8.5 q-4 4.25 0 8.5`;
+  let g = '';
+  if(k==='route'){
+    g = `<path d="${lampL}" fill="currentColor"/>` + [9,15,20,25,31].map(y=>`<line x1="25" y1="${y}" x2="44" y2="${y}"/>`).join('');
+  } else if(k==='crois'){
+    g = `<path d="${lampL}" fill="currentColor"/>` + [7,13,19,25,31].map(y=>`<line x1="25" y1="${y-2}" x2="42" y2="${y+4}"/>`).join('');
+  } else if(k==='bav'){
+    g = `<path d="${lampL}" fill="currentColor"/>` + [9,20,31].map(y=>`<line x1="25" y1="${y-3}" x2="45" y2="${y+3}"/>`).join('') + `<path d="${wave(34)}" fill="none"/>`;
+  } else if(k==='bar'){
+    g = `<path d="M27 7 C43 7 43 33 27 33 Z" fill="currentColor"/>` + [9,20,31].map(y=>`<line x1="4" y1="${y}" x2="23" y2="${y}"/>`).join('') + `<path d="${wave(13)}" fill="none"/>`;
+  } else if(k==='pos'){
+    g = `<path d="M21 11 C11 11 11 29 21 29 Z" fill="currentColor"/><path d="M27 11 C37 11 37 29 27 29 Z" fill="currentColor"/>` +
+        [13,20,27].map(y=>`<line x1="3" y1="${y}" x2="10" y2="${y}"/><line x1="38" y1="${y}" x2="45" y2="${y}"/>`).join('');
+  } else if(k==='diu'){
+    g = `<path d="${lampL}" fill="none" stroke-width="3"/>` + [10,20,30].map(y=>`<line x1="26" y1="${y}" x2="40" y2="${y}"/>`).join('') + `<text x="24" y="38" font-size="0"></text>`;
+  }
+  return `<svg viewBox="0 0 48 40" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">${g}</svg>`;
+}
+
+/* Fiches de découverte (texte simplifié) */
+const LEARN = [
+  {k:'pos', key:'Les plus faibles. On vous voit à 150 m.',
+   yes:['Quand la lumière baisse un peu en ville','Arrêté ou garé sur une route mal éclairée'],
+   no:['Ils n’éclairent pas la route : pas pour rouler la nuit hors de la ville'], demo:'s9'},
+  {k:'crois', key:'Les plus utilisés. Vous voyez à 30 m.',
+   yes:['La nuit','Le jour s’il pleut, s’il neige ou s’il y a du brouillard','Dans un tunnel','Quand une voiture arrive en face ou roule devant'],
+   no:['Ils éclairent plus à droite qu’à gauche, pour ne pas éblouir'], noIcon:'ℹ️', demo:'s2'},
+  {k:'route', key:'Très puissants. Vous voyez à 100 m ou plus.',
+   yes:['La nuit, hors de la ville, sur une route sans lumière','Pour un appel de phares (prévenir d’un danger)'],
+   no:['Interdits dans un tunnel','À éteindre si une voiture arrive en face ou roule devant'], demo:'s1'},
+  {k:'bav', key:'En plus des feux de croisement. Ils éclairent large.',
+   yes:['Forte pluie','Neige','Brouillard','Route étroite avec beaucoup de virages'],
+   no:['Toujours avec les feux de croisement'], noIcon:'ℹ️', demo:'fogAv'},
+  {k:'bar', key:'Très éblouissant pour la voiture derrière vous.',
+   yes:['Quand il neige','Dans un brouillard épais'],
+   no:['INTERDIT sous la pluie','Il se trouve à gauche de la voiture'], demo:'fogAr'},
+  {k:'diu', key:'Automatiques : vous n’avez rien à faire.',
+   yes:['Ils s’allument tout seuls le jour'],
+   no:['Obligatoires sur les voitures sorties depuis 2011'], noIcon:'ℹ️'}
+];
+
+/* Les 12 situations, de la plus simple à la plus difficile */
+const SCEN = [
+ {id:'s1', title:'Route de campagne', scene:{time:'night',place:'country'},
+  text:'Il fait nuit. Vous roulez sur une route de campagne sans lampadaires. Personne devant, personne en face.',
+  need:['route'], ok:['pos'],
+  hint:'Il fait très noir et la route est vide : vous avez besoin de voir très loin.',
+  why:'La nuit, hors de la ville, sur une route sans lumière et vide, on allume les feux de route (pleins phares). Ils éclairent à 100 m ou plus.',
+  notion:'Feux de route : la nuit, hors de la ville, route vide sans lumière'},
+ {id:'s2', title:'Une voiture en face', scene:{time:'night',place:'country',oncoming:true},
+  text:'Il fait nuit, toujours sur la route de campagne. Une voiture arrive en face.',
+  need:['crois'], ok:['pos'],
+  hint:'Attention : il ne faut pas éblouir le conducteur d’en face.',
+  why:'Quand une voiture arrive en face, on passe en feux de croisement. Les feux de route éblouissent : l’autre conducteur ne voit plus rien.',
+  notion:'Croiser une voiture : passer en feux de croisement'},
+ {id:'s3', title:'Une voiture devant', scene:{time:'night',place:'country',ahead:true},
+  text:'Il fait nuit, hors de la ville. Vous roulez derrière une autre voiture.',
+  need:['crois'], ok:['pos'],
+  hint:'Le conducteur devant vous regarde dans ses rétroviseurs…',
+  why:'Quand on suit une voiture, nos feux de route l’éblouissent dans ses rétroviseurs. On allume les feux de croisement.',
+  notion:'Suivre une voiture : feux de croisement'},
+ {id:'s4', title:'Le tunnel', scene:{time:'day',place:'tunnel'},
+  text:'Il fait jour et beau. Vous entrez dans un tunnel.',
+  need:['crois'], ok:['pos'],
+  hint:'Dans un tunnel, il fait sombre, même en plein jour.',
+  why:'Dans un tunnel, on allume les feux de croisement, même le jour. Les feux de route sont interdits dans un tunnel.',
+  notion:'Tunnel : feux de croisement (feux de route interdits)'},
+ {id:'s5', title:'Beau temps', scene:{time:'day',place:'city'},
+  text:'Il fait jour et beau. Vous roulez en ville.',
+  need:[], ok:[],
+  hint:'Avez-vous vraiment besoin d’allumer quelque chose ?',
+  why:'Le jour, par beau temps, il n’y a rien à allumer. Les feux de jour (diurnes) s’allument tout seuls sur les voitures récentes (depuis 2011).',
+  notion:'Jour et beau temps : rien à allumer (feux de jour automatiques)'},
+ {id:'s6', title:'La lumière baisse', scene:{time:'dusk',place:'city',lamps:true},
+  text:'C’est le début de la soirée, en ville. La lumière baisse un peu.',
+  need:['pos'], ok:['crois'],
+  hint:'Il fait encore un peu clair : il faut surtout être vu par les autres.',
+  why:'Quand la lumière baisse un peu en ville, les feux de position (veilleuses) suffisent pour être vu (à 150 m). Les feux de croisement sont aussi possibles.',
+  notion:'Lumière qui baisse en ville : feux de position'},
+ {id:'s7', title:'La nuit au village', scene:{time:'night',place:'village',lamps:true},
+  text:'Il fait nuit. Vous traversez un village avec des lampadaires.',
+  need:['crois'], ok:['pos'],
+  hint:'Vous êtes en agglomération : les pleins phares sont-ils utiles ici ?',
+  why:'La nuit, en ville ou dans un village, on roule en feux de croisement. Les feux de route, c’est hors de la ville, sur une route sans lumière.',
+  notion:'Nuit en ville ou au village : feux de croisement'},
+ {id:'s8', title:'Forte pluie', scene:{time:'day',place:'country',weather:'rain'},
+  text:'Il fait jour. Il pleut très fort, on voit mal.',
+  need:['crois'], ok:['pos','bav'],
+  hint:'Il pleut : le feu de brouillard arrière est-il autorisé ?',
+  why:'Sous la pluie, on allume les feux de croisement, même le jour. On peut ajouter les feux de brouillard avant. Le feu de brouillard arrière est INTERDIT sous la pluie : il éblouit la voiture derrière.',
+  notion:'Pluie : feux de croisement, jamais de brouillard arrière'},
+ {id:'s9', title:'À l’arrêt', scene:{time:'night',place:'city',parked:true},
+  text:'Le soir, vous vous arrêtez au bord d’une petite rue mal éclairée pour attendre quelqu’un.',
+  need:['pos'], ok:[],
+  hint:'Vous ne roulez pas : vous voulez juste que les autres vous voient.',
+  why:'Arrêté ou garé sur une route mal éclairée, on laisse les feux de position (veilleuses) : les autres vous voient.',
+  notion:'Arrêt sur une route mal éclairée : feux de position'},
+ {id:'s10', title:'Brouillard épais', scene:{time:'day',place:'country',weather:'fog'},
+  text:'Il fait jour, mais le brouillard est très épais : on voit à peine la route.',
+  need:['crois','bar'], ok:['pos','bav'],
+  hint:'Il faut voir… mais aussi être vu par la voiture qui est derrière vous.',
+  why:'Dans un brouillard épais : feux de croisement + feu de brouillard arrière. On peut ajouter les feux de brouillard avant. Pas de feux de route : la lumière se reflète dans le brouillard et on voit encore moins.',
+  notion:'Brouillard épais : croisement + brouillard arrière (+ brouillard avant)'},
+ {id:'s11', title:'Il neige', scene:{time:'day',place:'country',weather:'snow'},
+  text:'Il fait jour. Il neige beaucoup.',
+  need:['crois','bar'], ok:['pos','bav'],
+  hint:'C’est comme le brouillard : il faut voir et être vu, devant et derrière.',
+  why:'Quand il neige : feux de croisement + feu de brouillard arrière. Les feux de brouillard avant peuvent aider aussi.',
+  notion:'Neige : croisement + brouillard arrière (+ brouillard avant)'},
+ {id:'s12', title:'Les virages', scene:{time:'night',place:'winding',oncoming:true},
+  text:'Il fait nuit. Route étroite avec beaucoup de virages. Une voiture arrive en face.',
+  need:['crois'], ok:['pos','bav'],
+  hint:'Pensez d’abord à la voiture en face. Un autre feu peut aider dans les virages…',
+  why:'Une voiture arrive : feux de croisement. Sur une route étroite avec beaucoup de virages, les feux de brouillard avant peuvent aider : ils éclairent large, sur les côtés.',
+  notion:'Route étroite et sinueuse : les feux de brouillard avant peuvent aider'}
+];
+
+/* Le grand trajet : les feux restent allumés d'une étape à l'autre */
+const TRIP = [
+ {title:'Départ', scene:{time:'night',place:'country'},
+  text:'Il fait nuit. Vous quittez la ville par une route de campagne sans lumière. Personne devant, personne en face.',
+  need:['route'], ok:['pos'], hint:'La route est vide et très sombre.',
+  why:'Route vide, sans lumière, hors de la ville, la nuit : feux de route.', notion:'Feux de route : la nuit, hors de la ville, route vide sans lumière'},
+ {title:'Attention !', scene:{time:'night',place:'country',oncoming:true},
+  text:'Une voiture arrive en face !',
+  need:['crois'], ok:['pos'], hint:'Ne l’éblouissez pas.',
+  why:'Une voiture en face : on passe vite en feux de croisement pour ne pas l’éblouir.', notion:'Croiser une voiture : passer en feux de croisement'},
+ {title:'Route libre', scene:{time:'night',place:'country'},
+  text:'La voiture est passée. La route est de nouveau vide et toute noire.',
+  need:['route'], ok:['pos'], hint:'Plus personne ne risque d’être ébloui.',
+  why:'Plus personne en face ni devant : on peut remettre les feux de route pour voir loin.', notion:'Remettre les feux de route quand la route est libre'},
+ {title:'Une voiture devant', scene:{time:'night',place:'country',ahead:true},
+  text:'Vous rattrapez une voiture qui roule devant vous.',
+  need:['crois'], ok:['pos'], hint:'Pensez à ses rétroviseurs.',
+  why:'On suit une voiture : feux de croisement, sinon on l’éblouit dans ses rétroviseurs.', notion:'Suivre une voiture : feux de croisement'},
+ {title:'Le village', scene:{time:'night',place:'village',lamps:true},
+  text:'Vous entrez dans un village éclairé par des lampadaires.',
+  need:['crois'], ok:['pos'], hint:'En agglomération, pas de pleins phares.',
+  why:'La nuit, en ville ou au village : feux de croisement.', notion:'Nuit en ville ou au village : feux de croisement'},
+ {title:'Le brouillard', scene:{time:'night',place:'country',weather:'fog'},
+  text:'Vous sortez du village. Un brouillard très épais tombe !',
+  need:['crois','bar'], ok:['pos','bav'], hint:'Il faut voir et être vu par la voiture derrière.',
+  why:'Brouillard épais : feux de croisement + feu de brouillard arrière (et brouillard avant si vous voulez). Pas de feux de route : ils se reflètent dans le brouillard.', notion:'Brouillard épais : croisement + brouillard arrière'},
+ {title:'La pluie', scene:{time:'night',place:'country',weather:'rain',oncoming:true},
+  text:'Le brouillard disparaît… mais il pleut très fort. Une voiture arrive en face.',
+  need:['crois'], ok:['pos','bav'], hint:'Il pleut : un de vos feux est maintenant interdit !',
+  why:'Sous la pluie, le feu de brouillard arrière est INTERDIT : il faut l’éteindre ! On garde les feux de croisement (et le brouillard avant si vous voulez).', notion:'Pluie : éteindre le brouillard arrière'},
+ {title:'Le tunnel', scene:{time:'night',place:'tunnel'},
+  text:'La pluie s’arrête. Vous entrez dans un tunnel.',
+  need:['crois'], ok:['pos'], hint:'Un feu est interdit dans les tunnels.',
+  why:'Dans un tunnel : feux de croisement. Les feux de route sont interdits, et les feux de brouillard ne servent à rien.', notion:'Tunnel : feux de croisement'},
+ {title:'Arrivée', scene:{time:'night',place:'city',parked:true},
+  text:'Vous êtes arrivé. Vous vous arrêtez au bord d’une petite rue sombre pour déposer un ami.',
+  need:['pos'], ok:[], hint:'Vous ne roulez plus, mais on doit vous voir.',
+  why:'Arrêté sur une route mal éclairée : on laisse seulement les feux de position (veilleuses).', notion:'Arrêt sur une route mal éclairée : feux de position'}
+];
+
+/* =========================================================
+   DESSIN DE LA ROUTE (SVG)
+   ========================================================= */
+const R = (a,b)=>a+Math.random()*(b-a);
+function roadAt(t, sc){
+  const y = 450 - t*258;
+  const w = 700*(1-t) + 14*t;
+  let c = 400;
+  if(sc.place==='winding') c = 400 + 175*Math.sin(t*Math.PI*1.55)*Math.pow(t,0.85);
+  return {y, w, c, s:w/700};
+}
+const pt = (sc,t,f)=>{const r=roadAt(t,sc);return `${(r.c+f*r.w/2).toFixed(1)},${r.y.toFixed(1)}`;};
+function band(sc, f1, f2, t0=0, t1=1){
+  const L=[],Rr=[];
+  for(let i=0;i<=24;i++){const t=t0+(t1-t0)*i/24; L.push(pt(sc,t,f1)); Rr.unshift(pt(sc,t,f2));}
+  return L.concat(Rr).join(' ');
+}
+function line(sc,f){const a=[];for(let i=0;i<=24;i++)a.push(pt(sc,i/24*0.99,f));return a.join(' ');}
+
+function carFront(x,y,s,night){
+  const w=120*s,h=52*s;
+  let g=`<g>`;
+  g+=`<path d="M${x-w*.36} ${y-h} L${x+w*.36} ${y-h} L${x+w*.46} ${y-h*.55} L${x-w*.46} ${y-h*.55}Z" fill="${night?'#1c2333':'#7d8b9c'}"/>`;
+  g+=`<path d="M${x-w*.33} ${y-h*.95} L${x+w*.33} ${y-h*.95} L${x+w*.4} ${y-h*.6} L${x-w*.4} ${y-h*.6}Z" fill="${night?'#0e1320':'#bfe3f5'}"/>`;
+  g+=`<rect x="${x-w/2}" y="${y-h*.58}" width="${w}" height="${h*.5}" rx="${8*s}" fill="${night?'#20283a':'#c8ced6'}"/>`;
+  g+=`<rect x="${x-w*.45}" y="${y-h*.1}" width="${w*.17}" height="${h*.12}" fill="#111"/><rect x="${x+w*.28}" y="${y-h*.1}" width="${w*.17}" height="${h*.12}" fill="#111"/>`;
+  for(const d of [-1,1]){
+    const hx=x+d*w*.33, hy=y-h*.36;
+    if(night){g+=`<circle cx="${hx}" cy="${hy}" r="${95*s}" fill="url(#gw)" opacity=".95"/>`;}
+    g+=`<ellipse cx="${hx}" cy="${hy}" rx="${11*s}" ry="${7*s}" fill="${night?'#fffdf0':'#f8fafc'}"/>`;
+  }
+  return g+`</g>`;
+}
+function carRear(x,y,s,night){
+  const w=120*s,h=56*s;
+  let g=`<g>`;
+  g+=`<path d="M${x-w*.36} ${y-h} L${x+w*.36} ${y-h} L${x+w*.46} ${y-h*.55} L${x-w*.46} ${y-h*.55}Z" fill="${night?'#1c2333':'#2f5ea8'}"/>`;
+  g+=`<path d="M${x-w*.32} ${y-h*.94} L${x+w*.32} ${y-h*.94} L${x+w*.39} ${y-h*.62} L${x-w*.39} ${y-h*.62}Z" fill="${night?'#0e1320':'#9cc6e6'}"/>`;
+  g+=`<rect x="${x-w/2}" y="${y-h*.58}" width="${w}" height="${h*.5}" rx="${8*s}" fill="${night?'#1f2a44':'#3b6fb6'}"/>`;
+  g+=`<rect x="${x-w*.45}" y="${y-h*.1}" width="${w*.17}" height="${h*.12}" fill="#111"/><rect x="${x+w*.28}" y="${y-h*.1}" width="${w*.17}" height="${h*.12}" fill="#111"/>`;
+  for(const d of [-1,1]){
+    const hx=x+d*w*.38, hy=y-h*.38;
+    if(night) g+=`<circle cx="${hx}" cy="${hy}" r="${34*s}" fill="url(#gr)"/>`;
+    g+=`<rect x="${hx-12*s}" y="${hy-6*s}" width="${24*s}" height="${12*s}" rx="${3*s}" fill="${night?'#ff3b30':'#c81e1e'}"/>`;
+  }
+  return g+`</g>`;
+}
+
+function sceneSVG(sc, lights, withInset){
+  sc = Object.assign({time:'day',place:'country',weather:'clear'}, sc);
+  const night = sc.time==='night', dusk = sc.time==='dusk', dark = night||dusk;
+  const snowy = sc.weather==='snow', tunnel = sc.place==='tunnel', urban = sc.place==='city'||sc.place==='village';
+  let o = `<svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid ${withInset?'meet':'slice'}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky-day" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fb4ea"/><stop offset="1" stop-color="#d4eefb"/></linearGradient>
+    <linearGradient id="sky-dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e2f63"/><stop offset=".7" stop-color="#b8687a"/><stop offset="1" stop-color="#f3a462"/></linearGradient>
+    <linearGradient id="sky-night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset="1" stop-color="#16244a"/></linearGradient>
+    <linearGradient id="bw" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff8dc" stop-opacity=".9"/><stop offset="1" stop-color="#fff8dc" stop-opacity="0"/></linearGradient>
+    <linearGradient id="by" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff1a8" stop-opacity=".85"/><stop offset="1" stop-color="#fff1a8" stop-opacity="0"/></linearGradient>
+    <radialGradient id="gw"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".25" stop-color="#fffbe0" stop-opacity=".7"/><stop offset="1" stop-color="#fffbe0" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gy"><stop offset="0" stop-color="#ffe9a0" stop-opacity=".9"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gr"><stop offset="0" stop-color="#ff4d4d" stop-opacity=".95"/><stop offset="1" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fog" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${night?'#8f99a6':'#e8edf2'}" stop-opacity=".97"/><stop offset=".55" stop-color="${night?'#8f99a6':'#e8edf2'}" stop-opacity=".9"/><stop offset="1" stop-color="${night?'#8f99a6':'#e8edf2'}" stop-opacity=".55"/></linearGradient>
+  </defs>`;
+
+  /* --- Décor --- */
+  if(tunnel){
+    o += `<rect width="800" height="450" fill="#2a251f"/>`;
+    o += `<polygon points="0,0 800,0 ${pt(sc,1,.9)} ${pt(sc,1,-.9)}" fill="#1f1b17"/>`;
+    o += `<polygon points="0,0 ${pt(sc,1,-.9)} ${pt(sc,0,-.62)} 0,450" fill="#3a332b"/>`;
+    o += `<polygon points="800,0 ${pt(sc,1,.9)} ${pt(sc,0,.62)} 800,450" fill="#3a332b"/>`;
+    o += `<ellipse cx="400" cy="186" rx="22" ry="14" fill="${night?'#1b2a4a':'#fff7d6'}"/>`;
+    for(let i=1;i<14;i++){
+      const t=1-Math.pow(i/14,1.2)*.98, r=roadAt(t,sc);
+      for(const d of [-1,1]){
+        const x=r.c+d*r.w*0.75, y=r.y-r.w*0.62;
+        o+=`<circle cx="${x}" cy="${y}" r="${30*r.s+3}" fill="url(#gy)"/><rect x="${x-14*r.s-1}" y="${y-4*r.s-1}" width="${28*r.s+2}" height="${8*r.s+2}" rx="2" fill="#ffcf6b"/>`;
+      }
+    }
+  } else {
+    o += `<rect width="800" height="196" fill="url(#sky-${sc.time})"/>`;
+    if(night){ for(let i=0;i<40;i++) o+=`<circle cx="${R(0,800)}" cy="${R(0,170)}" r="${R(.6,1.8)}" fill="#fff" opacity="${R(.3,.9)}"/>`; o+=`<circle cx="690" cy="55" r="20" fill="#f4f1de"/><circle cx="700" cy="48" r="18" fill="#030816"/>`; }
+    if(dusk) o+=`<circle cx="160" cy="190" r="40" fill="#ffb347" opacity=".8"/>`;
+    const gcol = snowy ? (night?'#56606d':'#f1f5f9') : urban ? (night?'#191a20':dusk?'#4f4f5b':'#a3a8ae') : (night?'#0b170e':dusk?'#46553a':'#78b04a');
+    o += `<rect y="190" width="800" height="260" fill="${gcol}"/>`;
+    if(!urban){
+      o += `<path d="M0 192 Q120 150 260 190 Q380 160 470 191 Q600 140 800 190 L800 196 L0 196Z" fill="${night?'#07100a':dusk?'#3a4630':snowy?'#dfe6ee':'#5a8f3a'}"/>`;
+      for(const t of [.92,.82,.7,.56,.4,.22]) for(const d of [-1,1]){
+        const r=roadAt(t,sc), x=r.c+d*(r.w/2+90*r.s+14+(t*30)), y=r.y;
+        const crown = night?'#0a160c':dusk?'#2f4027':snowy?'#e8eef4':'#3d7a2e';
+        o+=`<rect x="${x-6*r.s-1}" y="${y-90*r.s-6}" width="${12*r.s+2}" height="${90*r.s+6}" fill="${night?'#050a06':'#5b3d24'}"/><circle cx="${x}" cy="${y-110*r.s-8}" r="${55*r.s+5}" fill="${crown}"/>`;
+      }
+    } else {
+      o += `<polygon points="${band(sc,-1.35,1.35)}" fill="${night?'#2a2b33':dusk?'#77778a':'#c9ccd1'}"/>`;
+      const H = sc.place==='village'?170:300;
+      for(const t of [.88,.76,.64,.52,.4,.28]) for(const d of [-1,1]){
+        const r=roadAt(t,sc), bw=200*r.s+10, h=H*r.s+16+(Math.sin(t*40+d)*.5+.5)*60*r.s;
+        const x = d<0 ? r.c-r.w*0.68-bw : r.c+r.w*0.68;
+        const wall = night?'#11131a':dusk?'#4b4660':['#d9c6a5','#c9a27e','#e6dccb','#b7b0a6'][Math.floor(t*10)%4];
+        o+=`<rect x="${x}" y="${r.y-h}" width="${bw}" height="${h}" fill="${wall}"/>`;
+        if(sc.place==='village') o+=`<polygon points="${x-4},${r.y-h} ${x+bw/2},${r.y-h-bw*.4} ${x+bw+4},${r.y-h}" fill="${night?'#1a0f0c':'#9c4a32'}"/>`;
+        for(let i=0;i<2;i++)for(let j=0;j<3;j++){
+          const lit = dark && Math.random()<.6;
+          o+=`<rect x="${x+bw*(.15+i*.45)}" y="${r.y-h+h*(.12+j*.27)}" width="${bw*.25}" height="${h*.14}" fill="${lit?'#ffd977':night?'#1d2130':'#6f8aa6'}" opacity=".95"/>`;
+        }
+      }
+    }
+  }
+  /* --- Route --- */
+  const rc = snowy ? (night?'#3b414a':'#c4cad2') : night?'#141519':dusk?'#3c3e45':'#55595f';
+  o += `<polygon points="${band(sc,-1,1)}" fill="${rc}"/>`;
+  o += `<polyline points="${line(sc,-.93)}" fill="none" stroke="#e5e7eb" stroke-opacity="${night?.35:.8}" stroke-width="4"/>`;
+  o += `<polyline points="${line(sc,.93)}" fill="none" stroke="#e5e7eb" stroke-opacity="${night?.35:.8}" stroke-width="4"/>`;
+  o += `<polyline points="${line(sc,0)}" fill="none" stroke="#f8fafc" stroke-opacity="${night?.35:.85}" stroke-width="5" stroke-dasharray="34 30"/>`;
+
+  /* --- Lampadaires --- */
+  if(urban && !sc.parked || (urban && sc.lamps)){
+    for(const t of [.62,.42,.18]) for(const d of [-1,1]){
+      const r=roadAt(t,sc), x=r.c+d*r.w*0.6, top=r.y-300*r.s-10;
+      o+=`<line x1="${x}" y1="${r.y}" x2="${x}" y2="${top}" stroke="${night?'#2b2f3a':'#555'}" stroke-width="${6*r.s+1}"/><line x1="${x}" y1="${top}" x2="${x-d*40*r.s}" y2="${top}" stroke="${night?'#2b2f3a':'#555'}" stroke-width="${6*r.s+1}"/>`;
+      if(sc.lamps && dark){
+        o+=`<ellipse cx="${x-d*60*r.s}" cy="${r.y-4*r.s}" rx="${150*r.s}" ry="${30*r.s}" fill="#ffd166" opacity=".22"/>`;
+        o+=`<circle cx="${x-d*40*r.s}" cy="${top+6*r.s}" r="${70*r.s+6}" fill="url(#gy)"/>`;
+      }
+      o+=`<rect x="${x-d*40*r.s-12*r.s}" y="${top}" width="${24*r.s}" height="${10*r.s+1}" fill="${sc.lamps&&dark?'#fff3c4':'#777'}"/>`;
+    }
+  }
+  if(sc.parked){
+    const r=roadAt(.05,sc);
+    o+=`<rect x="690" y="250" width="56" height="56" rx="8" fill="#1d4ed8"/><text x="718" y="295" font-size="44" font-weight="900" fill="#fff" text-anchor="middle" font-family="Nunito,sans-serif">P</text><line x1="718" y1="306" x2="718" y2="440" stroke="#64748b" stroke-width="6"/>`;
+    o+=`<polygon points="${band(sc,1,1.35,0,.95)}" fill="${night?'#2e3038':'#bbb'}"/>`;
+  }
+
+  /* --- Autres voitures --- */
+  if(sc.ahead){ const r=roadAt(.5,sc); o+=carRear(r.c+r.w*.24,r.y,r.s*2.1,dark||tunnel); }
+  if(sc.oncoming){ const r=roadAt(.45,sc); o+=carFront(r.c-r.w*.26,r.y,r.s*2.1,dark||tunnel); }
+
+  /* --- Brouillard --- */
+  if(sc.weather==='fog') o+=`<rect width="800" height="450" fill="url(#fog)"/>`;
+  if(snowy) o+=`<rect width="800" height="450" fill="${night?'#9aa4b1':'#f8fafc'}" opacity=".35"/>`;
+
+  /* --- Nos feux --- */
+  const k = tunnel?.8 : night?1 : dusk?.65 : .3;
+  if(lights.bav) o+=`<polygon points="120,450 680,450 ${pt(sc,.22,1.55)} ${pt(sc,.22,-1.55)}" fill="url(#by)" opacity="${k}"/>`;
+  if(lights.crois && !lights.route) o+=`<polygon points="250,450 550,450 ${pt(sc,.5,1.05)} ${pt(sc,.56,.5)} ${pt(sc,.47,-.1)} ${pt(sc,.4,-.8)}" fill="url(#bw)" opacity="${k}"/>`;
+  if(lights.route) o+=`<polygon points="220,450 580,450 ${pt(sc,.93,1.8)} ${pt(sc,.93,-1.8)}" fill="url(#bw)" opacity="${k}"/>`;
+  if(lights.route && (sc.weather==='fog'||snowy||sc.weather==='rain')) o+=`<rect width="800" height="450" fill="#fff" opacity=".35"/>`;
+  if(lights.pos||lights.crois||lights.route) for(const x of [205,595]) o+=`<circle cx="${x}" cy="446" r="${lights.pos&&!lights.crois&&!lights.route?40:30}" fill="url(#gw)" opacity="${.5+k/2}"/>`;
+
+  /* --- Pluie / neige --- */
+  if(sc.weather==='rain'){
+    let ln=''; const xs=[...Array(70)].map(()=>[R(0,800),R(0,120)]);
+    for(let row=-1;row<4;row++) for(const [x,y] of xs) ln+=`<line x1="${x}" y1="${y+row*120}" x2="${x-5}" y2="${y+row*120+22}"/>`;
+    o+=`<g class="rain" stroke="${dark?'#9fb3d1':'#5d7697'}" stroke-width="2" opacity=".75">${ln}</g>`;
+  }
+  if(snowy){
+    let ln=''; const xs=[...Array(60)].map(()=>[R(0,800),R(0,150),R(2,5)]);
+    for(let row=-1;row<4;row++) for(const [x,y,r] of xs) ln+=`<circle cx="${x}" cy="${y+row*150}" r="${r}"/>`;
+    o+=`<g class="snow" fill="#fff" opacity=".9">${ln}</g>`;
+  }
+
+  if(withInset) o+=insetG(lights);
+  return o + `</svg>`;
+}
+function insetSVG(lights){ return `<svg class="inset" viewBox="606 10 186 120" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="gr2"><stop offset="0" stop-color="#ff4d4d" stop-opacity=".95"/><stop offset="1" stop-color="#ff0000" stop-opacity="0"/></radialGradient></defs>${insetG(lights).replace(/url\(#gr\)/g,'url(#gr2)')}</svg>`; }
+function insetG(lights){
+  const tail = lights.pos||lights.crois||lights.route;
+  return `<g font-family="Nunito,sans-serif">
+    <rect x="606" y="10" width="186" height="120" rx="14" fill="#fff" opacity=".94"/>
+    <text x="699" y="30" text-anchor="middle" font-size="13" font-weight="800" fill="#334155">Ma voiture vue de derrière</text>
+    <path d="M652 58 L746 58 L756 74 L642 74Z" fill="#2f5ea8"/><path d="M658 61 L740 61 L747 72 L651 72Z" fill="#9cc6e6"/>
+    <rect x="636" y="72" width="126" height="40" rx="10" fill="#3b6fb6"/>
+    <rect x="640" y="110" width="22" height="10" fill="#111"/><rect x="736" y="110" width="22" height="10" fill="#111"/>
+    ${tail?'<circle cx="652" cy="84" r="18" fill="url(#gr)"/><circle cx="746" cy="84" r="18" fill="url(#gr)"/>':''}
+    <rect x="640" y="79" width="24" height="11" rx="3" fill="${tail?'#ff3b30':'#7f1d1d'}"/>
+    <rect x="734" y="79" width="24" height="11" rx="3" fill="${tail?'#ff3b30':'#7f1d1d'}"/>
+    ${lights.bar?'<circle cx="654" cy="101" r="30" fill="url(#gr)"/>':''}
+    <rect x="645" y="97" width="18" height="8" rx="2" fill="${lights.bar?'#ff1a1a':'#5b2323'}"/>
+    <rect x="689" y="92" width="20" height="10" rx="2" fill="#e5e7eb"/>
+  </g>`;
+}
+
+/* =========================================================
+   ÉCRANS & JEU
+   ========================================================= */
+let mode='scen', list=SCEN, idx=0, lights={}, firstTry=true, score=0, results=[], misses=[], chrono=false, tmr=null, tLeft=0;
+const $ = id=>document.getElementById(id);
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); stopTimer(); try{speechSynthesis.cancel()}catch(e){}}
+function fullscreen(){try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}}
+function toggleChrono(){$('chronoChoice').classList.toggle('on');}
+const canSpeak = 'speechSynthesis' in window;
+function speak(t){ if(!canSpeak) return; try{speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang='fr-FR'; u.rate=.95; speechSynthesis.speak(u);}catch(e){} }
+
+/* --- Découverte --- */
+function openLearn(){
+  $('cards').innerHTML = LEARN.map(d=>{
+    const l=L[d.k];
+    return `<div class="card" style="--c:${l.c};--cl:${l.cl}">
+      <div class="card-h">${icon(d.k)}<div><h3>${l.name}</h3>${l.nick?`<div class="nick">« ${l.nick} »</div>`:''}</div></div>
+      <div class="key">${d.key}</div>
+      <ul>${d.yes.map(t=>`<li>✅ ${t}</li>`).join('')}${d.no.map(t=>`<li>${d.noIcon||'⛔'} ${t}</li>`).join('')}</ul>
+      ${d.demo?`<button class="see" onclick="demo('${d.k}','${d.demo}')">👀 Voir sur la route</button>`:''}
+    </div>`;}).join('');
+  go('learn');
+}
+function demo(k, ref){
+  let sc, li={};
+  if(ref==='fogAv'){ sc={time:'night',place:'winding',weather:'fog'}; li={crois:1,bav:1}; }
+  else if(ref==='fogAr'){ sc={time:'day',place:'country',weather:'fog'}; li={crois:1,bar:1}; }
+  else { sc=SCEN.find(s=>s.id===ref).scene; li={[k]:1}; if(k==='pos'&&ref==='s9') li={pos:1}; }
+  const l=L[k];
+  openModal(`<h2 style="color:${l.c}">${l.name}</h2>
+    <div class="preview">${sceneSVG(sc,li,true)}</div>
+    <div class="why">${LEARN.find(d=>d.k===k).key}${k==='bar'?' Regardez en haut à droite : il est à gauche de la voiture.':''}</div>
+    <div class="actions"><button class="btn ok" onclick="closeModal()">OK</button></div>`);
+}
+
+/* --- Commandes --- */
+function buildControls(){
+  $('controls').innerHTML = ORDER.map(k=>{const l=L[k];
+    return `<button class="lb" id="lb-${k}" style="--c:${l.c};--cl:${l.cl}" onclick="toggle('${k}')" aria-pressed="false">${icon(k)}<span>${l.short}</span><span class="st">éteint</span></button>`;}).join('');
+}
+function syncControls(){
+  ORDER.forEach(k=>{const b=$('lb-'+k), on=!!lights[k]; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.querySelector('.st').textContent=on?'ALLUMÉ':'éteint';});
+}
+function toggle(k){
+  lights[k]=!lights[k];
+  if(k==='route'&&lights.route) lights.crois=false;      // comme sur le commodo : on bascule
+  if(k==='crois'&&lights.crois) lights.route=false;
+  syncControls(); drawStage();
+}
+function drawStage(){
+  const st=$('stage'); st.querySelectorAll('svg').forEach(e=>e.remove());
+  st.insertAdjacentHTML('afterbegin', sceneSVG(list[idx].scene, lights, false) + insetSVG(lights));
+}
+
+/* --- Déroulé --- */
+function startScen(){ mode='scen'; list=SCEN; begin('🚦 12 situations'); }
+function startTrip(withChrono){ mode='trip'; list=TRIP; chrono=withChrono; begin(withChrono?'🛣️ Le grand trajet ⏱️':'🛣️ Le grand trajet'); }
+function begin(title){
+  $('chronoChoice').classList.remove('on');
+  idx=0; score=0; results=[]; misses=[]; lights={};
+  $('gTitle').textContent=title; buildControls(); go('game'); loadStep();
+}
+function loadStep(){
+  const s=list[idx];
+  if(mode==='scen') lights={};
+  firstTry=true;
+  $('sTag').textContent=`${idx+1} / ${list.length}`;
+  $('sTitle').textContent=s.title;
+  $('sText').textContent=s.text;
+  $('hint').textContent='💡 '+s.hint; $('hint').classList.remove('on');
+  $('speakBtn').style.display=canSpeak?'':'none';
+  const situ=$('situ'); situ.classList.remove('flash'); void situ.offsetWidth; situ.classList.add('flash');
+  syncControls(); drawStage(); drawProgress();
+  $('score').textContent='⭐ '+score;
+  if(mode==='trip'&&chrono) startTimer(); else $('timer').classList.remove('on');
+}
+function drawProgress(){
+  $('prog').innerHTML = list.map((_,i)=>`<i class="${i===idx?'cur':results[i]===true?'ok':results[i]===false?'ko':''}"></i>`).join('');
+}
+function toggleHint(){ $('hint').classList.toggle('on'); }
+function speakSitu(){ speak(list[idx].text); }
+
+function startTimer(){
+  stopTimer(); tLeft=25; $('timer').classList.add('on'); updTimer();
+  tmr=setInterval(()=>{ tLeft-=.1; updTimer(); if(tLeft<=0){ stopTimer(); validate(true);} },100);
+}
+function updTimer(){ const p=Math.max(0,tLeft/25*100), b=$('timerBar'); b.style.width=p+'%'; b.style.background=p>50?'#22c55e':p>25?'#f59e0b':'#ef4444'; }
+function stopTimer(){ if(tmr){clearInterval(tmr); tmr=null;} }
+
+function evaluate(s){
+  const need=new Set(s.need), ok=new Set(s.ok);
+  const missing=s.need.filter(k=>!lights[k]);
+  const extra=ORDER.filter(k=>lights[k]&&!need.has(k)&&!ok.has(k));
+  const good=s.need.filter(k=>lights[k]);
+  const bonus=ORDER.filter(k=>lights[k]&&ok.has(k));
+  return {win:!missing.length&&!extra.length, missing, extra, good, bonus};
+}
+function validate(timeout){
+  stopTimer();
+  const s=list[idx], e=evaluate(s);
+  if(firstTry){ results[idx]=e.win; if(e.win) score++; else misses.push(s.notion); }
+  firstTry=false;
+  $('score').textContent='⭐ '+score; drawProgress();
+  const row=(k,txt,col)=>`<li style="color:${col}"><span style="color:${L[k].c}">${icon(k)}</span>${txt}</li>`;
+  let lis='';
+  if(timeout) lis+=`<li>⏱️ Temps écoulé !</li>`;
+  const one=k=>k==='bar';
+  e.good.forEach(k=>lis+=row(k,`✅ ${L[k].name} : ${one(k)?'allumé':'allumés'}, bien !`,'#166534'));
+  e.missing.forEach(k=>lis+=row(k,`❌ ${L[k].name} : il fallait ${one(k)?'l’allumer':'les allumer'}.`,'#b91c1c'));
+  e.extra.forEach(k=>lis+=row(k,`❌ ${L[k].name} : à éteindre ici.`,'#b91c1c'));
+  e.bonus.forEach(k=>lis+=row(k,`👍 ${L[k].name} : possible ici.`,'#334155'));
+  if(!s.need.length && !e.extra.length && !e.bonus.length) lis+=`<li style="color:#166534">✅ Aucun feu allumé : c’est juste !</li>`;
+  const last = idx>=list.length-1;
+  let btns;
+  if(e.win) btns=`<button class="btn ok" onclick="next()">${last?'Voir mon résultat 🏁':'Suivant ➜'}</button>`;
+  else if(mode==='scen') btns=`<button class="btn sec" onclick="closeModal()">↺ Réessayer</button><button class="btn main" onclick="next()">${last?'Voir mon résultat 🏁':'Suivant ➜'}</button>`;
+  else btns=`<button class="btn main" onclick="fixAndNext()">🔧 Corriger mes feux et continuer</button>`;
+  openModal(`<h2 class="${e.win?'good':'bad'}">${e.win?(['Bravo ! 🎉','Parfait ! 👏','Très bien ! ⭐'][idx%3]):'Pas tout à fait… 🤔'}</h2>
+    <ul class="fb">${lis}</ul>
+    <div class="why"><b>💡 Pourquoi ?</b>${s.why}</div>
+    <div class="actions">${btns}</div>`);
+  speak((e.win?'Bravo ! ':'Pas tout à fait. ')+s.why);
+}
+function fixAndNext(){
+  const s=list[idx], ok=new Set(s.ok);
+  ORDER.forEach(k=>{ if(!s.need.includes(k) && !(ok.has(k)&&lights[k])) lights[k]=false; });
+  s.need.forEach(k=>lights[k]=true);
+  next();
+}
+function next(){ closeModal(); idx++; if(idx>=list.length) showEnd(); else loadStep(); }
+function quitGame(){
+  openModal(`<h2>Quitter la partie ?</h2><p style="font-size:19px">Votre score ne sera pas gardé.</p>
+  <div class="actions"><button class="btn sec" onclick="closeModal()">Non, je continue</button><button class="btn main" onclick="closeModal();go('home')">Oui, quitter</button></div>`);
+}
+function showEnd(){
+  const n=list.length, p=score/n, st=p>=.9?3:p>=.6?2:p>=.3?1:0;
+  const msg=['Continuez à vous entraîner, vous allez y arriver !','C’est un bon début !','Très bien, vous connaissez bien vos feux !','Excellent, vous êtes un pro des feux !'][st];
+  const uniq=[...new Set(misses)];
+  $('endCard').innerHTML=`<div style="font-size:50px">🏁</div><h1>Résultat</h1>
+    <div class="stars">${[0,1,2].map(i=>`<span class="${i<st?'':'off'}">⭐</span>`).join('')}</div>
+    <p class="sub" style="font-size:24px;color:var(--ink);font-weight:900;margin:0">${score} bonne${score>1?'s':''} réponse${score>1?'s':''} sur ${n}</p>
+    <p class="sub">${msg}</p>
+    ${uniq.length?`<div class="review"><h3>📌 À revoir</h3><ul>${uniq.map(m=>`<li>${m}</li>`).join('')}</ul></div>`:''}
+    <div class="menu">
+      <button class="big b2" onclick="${mode==='scen'?'startScen()':`startTrip(${chrono})`}"><span class="em">🔁</span><span>Rejouer</span></button>
+      <button class="big b1" onclick="openLearn()"><span class="em">📖</span><span>Revoir les feux</span></button>
+      <button class="big b3" onclick="go('home')"><span class="em">🏠</span><span>Accueil</span></button>
+    </div>`;
+  go('end');
+}
+function openModal(h){ $('modal').innerHTML=h; $('ov').classList.add('on'); }
+function closeModal(){ $('ov').classList.remove('on'); try{speechSynthesis.cancel()}catch(e){} }
+</script>
+</body>
+</html>
